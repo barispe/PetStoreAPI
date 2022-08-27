@@ -9,6 +9,7 @@ import petStore.areas.Pet;
 import petStore.areas.Status;
 import java.util.List;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.responseSpecification;
 import static org.hamcrest.CoreMatchers.containsString;
 
 
@@ -31,11 +32,24 @@ public class Pets {
                 .body(pet)
                 .post(PET_ENDPOINT).as(Pet.class);
     }
+    public Pet addNewPetNegative(Pet pet) {
+        return given(requestSpec)
+                .body(responseSpecification)
+                .post(PET_ENDPOINT).as(Pet.class);
+    }
 
     public List<Pet> getPetsByStatus(Status status) {
         return given(requestSpec)
                 .queryParam("status", Status.available.toString())
                 .get(PET_ENDPOINT + "/findByStatus")
+                .then().log().all()
+                .extract().body()
+                .jsonPath().getList("", Pet.class);
+
+    }public List<Pet> getPetsByStatusNegative(Status status) {
+        return given(requestSpec)
+                .queryParam("status", Status.sold.toString())
+                .get(PET_ENDPOINT + "/findByCategory")
                 .then().log().all()
                 .extract().body()
                 .jsonPath().getList("", Pet.class);
@@ -47,6 +61,12 @@ public class Pets {
                 .pathParam("petId", pet.getId())
                 .delete(PET_ENDPOINT + "/{petId}");
     }
+    public void deletePetNegative(Pet pet) {
+        given(requestSpec)
+                .pathParam("petCategory", pet.getStatus())
+                .delete(PET_ENDPOINT + "/{status}");
+    }
+
 
     public void verifyPetDeleted(Pet pet) {
         given(requestSpec)
